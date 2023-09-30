@@ -39,9 +39,11 @@ if Code.ensure_loaded?(Ecto.Type) do
     def load({currency, amount}, _loader, params) do
       currency = String.trim_trailing(currency)
 
-      with {:ok, currency_code} <- Money.validate_currency(currency) do
-        {:ok, Money.new(currency_code, amount, params)}
+      with {:ok, currency_code} <- Money.validate_currency(currency),
+           %Money{} = money <- Money.new(currency_code, amount, params) do
+        {:ok, money}
       else
+        {:error, {Money.InvalidAmountError, _message}} -> {:ok, Money.zero(currency)}
         _ -> :error
       end
     end
